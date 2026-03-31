@@ -1,0 +1,62 @@
+{
+  "name": "create-planke",
+  "version": "0.0.1",
+  "description": "The Unified Toolchain Starter for Node.js",
+  "keywords": [
+    "backend",
+    "create-planke",
+    "express",
+    "fastify",
+    "framework",
+    "hono",
+    "oxfmt",
+    "oxlint",
+    "planke",
+    "scaffolder",
+    "toolchain",
+    "tsdown",
+    "tsx",
+    "typescript",
+    "vite+",
+    "vite-plus",
+    "viteplus",
+    "vitest"
+  ],
+  "license": "MIT",
+  "author": "Espen Steen",
+  "bin": {
+    "create-planke": "./dist/index.mjs"
+  },
+  "files": [
+    "dist",
+    "template"
+  ],
+  "type": "module",
+  "scripts": {
+    "test": "vitest",
+    "lint": "oxlint",
+    "lint:fix": "oxlint --fix",
+    "fmt": "oxfmt",
+    "fmt:check": "oxfmt --check",
+    "check": "oxlint && oxfmt --check && tsc --noEmit",
+    "dev": "tsx src/index.ts",
+    "build": "tsdown src/index.ts"
+  },
+  "dependencies": {
+    "@clack/prompts": "^1.1.0",
+    "cross-spawn": "^7.0.6",
+    "mri": "^1.2.0",
+    "picocolors": "^1.1.1"
+  },
+  "devDependencies": {
+    "@types/cross-spawn": "^6.0.6",
+    "@types/node": "^25.5.0",
+    "oxfmt": "^0.43.0",
+    "oxlint": "^1.58.0",
+    "tsdown": "^0.21.7",
+    "tsx": "^4.21.0",
+    "typescript": "^6.0.2",
+    "vitest": "^4.1.2"
+  },
+  "packageManager": "pnpm@10.30.3"
+}
