@@ -4,6 +4,8 @@
   "description": "The Unified Toolchain Starter for Node.js backend and non-web projects*",
   "keywords": [
     "backend",
+    "node",
+    "nodejs",
     "create-planke",
     "express",
     "fastify",
