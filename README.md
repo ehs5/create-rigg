@@ -4,6 +4,8 @@
 
 Creates a new Node.js TypeScript project using the same opinionated toolchain as [Vite+](https://github.com/voidzero-dev/vite-plus), but for non-web projects.
 
+## Create a new project with planke
+
 ```bash
 pnpm create planke@latest
 npm create planke@latest
