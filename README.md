@@ -2,7 +2,7 @@
 
 **The Unified Toolchain Starter for Node.js**
 
-Creates a new Node.js TypeScript project using the same opinionated toolchain as [Vite+](https://github.com/voidzero-dev/vite-plus), but for non-web projects.
+Creates a new Node.js TypeScript project using the same opinionated toolchain as [Vite+](https://github.com/voidzero-dev/vite-plus), but for backend and non-web projects.
 
 ## Create a new project with planke
 
