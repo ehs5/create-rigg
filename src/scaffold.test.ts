@@ -13,7 +13,7 @@ function hasBin(bin: string): boolean {
 }
 
 function scaffold(pm: string, tmpDir: string): ReturnType<typeof spawnSync> {
-  return spawnSync("tsx", [CLI, "test-project", "--template", "none", "--pm", pm], {
+  return spawnSync("tsx", [CLI, "test-project", "--framework", "none", "--pm", pm], {
     cwd: tmpDir,
     timeout: TIMEOUT,
     encoding: "utf-8",

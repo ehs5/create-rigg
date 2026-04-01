@@ -17,7 +17,7 @@ import {
 } from "./frameworks.js";
 import { type PkgManager, PKG_MANAGERS } from "./pkg-managers.js";
 
-type Argv = mri.Argv<{ template?: string; pm?: string; verbose?: boolean }>;
+type Argv = mri.Argv<{ framework?: string; pm?: string; verbose?: boolean }>;
 
 /** Resolved options coming from the CLI or user prompts. */
 type Options = {
@@ -123,7 +123,7 @@ async function resolveProjectName(fromArg: string | undefined): Promise<string> 
   return answer || "rigg-project";
 }
 
-/** Resolves the framework from the --template flag or prompts the user. */
+/** Resolves the framework from the --framework flag or prompts the user. */
 async function resolveFramework(fromArg: string | undefined): Promise<Framework> {
   if (fromArg && FRAMEWORK_DEPS[fromArg as Framework]) return fromArg as Framework;
 
@@ -248,7 +248,7 @@ async function resolveOptions(argv: Argv): Promise<Options> {
 
   return {
     projectName,
-    framework: await resolveFramework(argv.template),
+    framework: await resolveFramework(argv.framework),
     pkgManager: (argv.pm as PkgManager) || detectPkgManager(),
     verbose: argv.verbose ?? false,
   };
@@ -274,9 +274,9 @@ function formatCode(options: Options, targetDir: string) {
 async function main(): Promise<void> {
   // Parse CLI arguments
   const argv: Argv = mri(process.argv.slice(2), {
-    string: ["template", "pm"],
+    string: ["framework", "pm"],
     boolean: ["verbose"],
-    alias: { t: "template", v: "verbose" },
+    alias: { f: "framework", v: "verbose" },
   });
 
   showIntro();
