@@ -8,6 +8,13 @@ export const FRAMEWORKS: { value: Framework; label: string; hint?: string }[] = 
   { value: "express", label: "Express" },
 ];
 
+export const FRAMEWORK_LABELS: Record<Framework, string> = {
+  none: "None",
+  hono: "Hono",
+  fastify: "Fastify",
+  express: "Express",
+};
+
 export const FRAMEWORK_DEPS: Record<Framework, FrameworkDependencies> = {
   none: { deps: [], devDeps: [] },
   hono: { deps: ["hono", "@hono/node-server"], devDeps: [] },

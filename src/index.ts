@@ -8,12 +8,9 @@ import spawn from "cross-spawn";
 import mri from "mri";
 import * as p from "@clack/prompts";
 import pc from "picocolors";
+import { type Framework, FRAMEWORKS, FRAMEWORK_DEPS, FRAMEWORK_INDEX, FRAMEWORK_LABELS } from "./frameworks.js";
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-
-import { type Framework, FRAMEWORKS, FRAMEWORK_DEPS, FRAMEWORK_INDEX } from "./frameworks.js";
-
-type Argv = mri.Argv<{ template?: string }>;
+type Argv = mri.Argv<{ template?: string; pm?: string }>;
 
 /** Creates a colored gradient text effect */
 function gradient(
@@ -64,7 +61,7 @@ function addArgs(pkgManager: string, packages: string[], dev: boolean): string[]
 
 /** Runs a command synchronously, exiting the process if it fails. */
 function run(cmd: string, args: string[], opts?: SpawnSyncOptions): void {
-  const result = spawn.sync(cmd, args, { stdio: "inherit", ...opts });
+  const result = spawn.sync(cmd, args, { stdio: "ignore", ...opts });
   if (result.status != null && result.status !== 0) process.exit(result.status);
   if (result.error) throw result.error;
 }
@@ -133,7 +130,8 @@ async function confirmOverwrite(projectName: string, targetDir: string): Promise
   if (isEmpty(targetDir)) return;
 
   const overwrite = await p.confirm({
-    message: `${pc.yellow(projectName)} is not empty. Remove existing files and continue?`,
+    message: `${pc.white(projectName)} is not empty. Remove existing files and continue?`,
+    initialValue: false,
   });
   if (p.isCancel(overwrite) || !overwrite) {
     p.cancel("Cancelled");
@@ -144,10 +142,11 @@ async function confirmOverwrite(projectName: string, targetDir: string): Promise
 
 /** Copies the base template, sets the package name, and writes the framework starter code. */
 function scaffoldFiles(projectName: string, framework: Framework, targetDir: string): void {
-  copyDir(path.join(__dirname, "..", "template"), targetDir);
+  const directory: string = path.dirname(fileURLToPath(import.meta.url));
+  copyDir(path.join(directory, "..", "template"), targetDir);
 
-  const pkgJsonPath = path.join(targetDir, "package.json");
-  const pkg = JSON.parse(fs.readFileSync(pkgJsonPath, "utf-8")) as Record<string, unknown>;
+  const pkgJsonPath: string = path.join(targetDir, "package.json");
+  const pkg: Record<string, unknown> = JSON.parse(fs.readFileSync(pkgJsonPath, "utf-8"));
   pkg.name = projectName;
   fs.writeFileSync(pkgJsonPath, JSON.stringify(pkg, null, 2) + "\n");
 
@@ -157,7 +156,7 @@ function scaffoldFiles(projectName: string, framework: Framework, targetDir: str
 
 /** Installs shared dev dependencies and any framework-specific packages. */
 function installDependencies(pkgManager: string, framework: Framework, targetDir: string): void {
-  p.log.step(`Installing dependencies with ${pkgManager}...`);
+  p.log.step(`Installing dependencies with ${gradient(pkgManager, [[168, 85, 247], [99, 102, 241]])}...`);
   run(
     pkgManager,
     addArgs(
@@ -170,7 +169,7 @@ function installDependencies(pkgManager: string, framework: Framework, targetDir
 
   /** Install framework dependencies */
   if (framework !== "none") {
-    p.log.step(`Installing ${framework}...`);
+    p.log.step(`Installing ${gradient(FRAMEWORK_LABELS[framework], [[168, 85, 247], [99, 102, 241]])}...`);
     const frameworkDeps = FRAMEWORK_DEPS[framework];
 
     if (frameworkDeps.deps.length > 0)
@@ -183,11 +182,8 @@ function installDependencies(pkgManager: string, framework: Framework, targetDir
 
 /** Prints the gradient outro with next steps. */
 function showOutro(projectName: string, framework: Framework, pkgManager: string): void {
-  const frameworkLabel: string = FRAMEWORKS.find((f) => f.value === framework)?.label ?? framework;
-  const outroStops: [number, number, number][] = [
-    [168, 85, 247],
-    [99, 102, 241],
-  ];
+  const frameworkLabel: string = FRAMEWORK_LABELS[framework];
+  const outroStops: [number, number, number][] = [[168, 85, 247], [99, 102, 241]];
   const outroText =
     frameworkLabel !== "None"
       ? `Created ${projectName} with ${frameworkLabel}`
@@ -201,7 +197,7 @@ function showOutro(projectName: string, framework: Framework, pkgManager: string
 
 async function main(): Promise<void> {
   const argv: Argv = mri(process.argv.slice(2), {
-    string: ["template"],
+    string: ["template", "pm"],
     alias: { t: "template" },
   }) as Argv;
 
@@ -220,11 +216,12 @@ async function main(): Promise<void> {
   );
 
   const projectName: string = await promptProjectName(argv);
-  const framework: Framework = await promptFramework(argv);
   const targetDir: string = path.resolve(process.cwd(), projectName);
-  const pkgManager: string = detectPkgManager();
+  const pkgManager: string = argv.pm ?? detectPkgManager();
 
   await confirmOverwrite(projectName, targetDir);
+
+  const framework: Framework = await promptFramework(argv);
   scaffoldFiles(projectName, framework, targetDir);
 
   run("git", ["init", "-b", "main"], { cwd: targetDir, stdio: "ignore" });
@@ -233,9 +230,11 @@ async function main(): Promise<void> {
   installDependencies(pkgManager, framework, targetDir);
 
   p.log.step("Formatting code");
-  run(pkgManager, ["exec", "oxlint", "--", "--init"], { cwd: targetDir, stdio: "ignore" });
-  run(pkgManager, ["exec", "oxfmt", "--", "--init"], { cwd: targetDir, stdio: "ignore" });
-  run(pkgManager, ["exec", "oxfmt"], { cwd: targetDir, stdio: "ignore" });
+  const execCmd = pkgManager === "bun" ? "x" : "exec";
+  const sep = pkgManager === "npm" || pkgManager === "yarn" ? ["--"] : [];
+  run(pkgManager, [execCmd, "oxlint", ...sep, "--init"], { cwd: targetDir, stdio: "ignore" });
+  run(pkgManager, [execCmd, "oxfmt", ...sep, "--init"], { cwd: targetDir, stdio: "ignore" });
+  run(pkgManager, [execCmd, "oxfmt", ...sep, "."], { cwd: targetDir, stdio: "ignore" });
 
   showOutro(projectName, framework, pkgManager);
 }
