@@ -1,14 +1,14 @@
-# planke
+# rigg
 
 **The Unified Toolchain Starter for Node.js**
 
 Creates a new Node.js TypeScript project using the same opinionated toolchain as [Vite+](https://github.com/voidzero-dev/vite-plus), but for backend and non-web projects.
 
-## Create a new project with planke
+## Create a new project with rigg
 
 ```bash
-pnpm create planke@latest
-npm create planke@latest
+pnpm create rigg@latest
+npm create rigg@latest
 ```
 
 ## What you get

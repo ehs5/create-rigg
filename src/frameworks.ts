@@ -16,7 +16,7 @@ export const FRAMEWORK_DEPS: Record<Framework, FrameworkDependencies> = {
 };
 
 export const FRAMEWORK_INDEX: Record<Framework, string> = {
-  none: `console.log('Hello from planke!')\n`,
+  none: `console.log('Hello from rigg!')\n`,
   hono: `import { Hono } from 'hono'
 import { serve } from '@hono/node-server'
 

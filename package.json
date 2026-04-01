@@ -1,19 +1,19 @@
 {
-  "name": "create-planke",
+  "name": "create-rigg",
   "version": "0.0.1",
   "description": "The Unified Toolchain Starter for Node.js backend and non-web projects*",
   "keywords": [
     "backend",
     "node",
     "nodejs",
-    "create-planke",
+    "create-rigg",
     "express",
     "fastify",
     "framework",
     "hono",
     "oxfmt",
     "oxlint",
-    "planke",
+    "rigg",
     "scaffolder",
     "toolchain",
     "tsdown",
@@ -27,7 +27,7 @@
   "license": "MIT",
   "author": "Espen Steen",
   "bin": {
-    "create-planke": "./dist/index.mjs"
+    "create-rigg": "./dist/index.mjs"
   },
   "files": [
     "dist",

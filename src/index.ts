@@ -97,8 +97,8 @@ async function promptProjectName(argv: Argv): Promise<string> {
 
   const answer = await p.text({
     message: "Project name:",
-    placeholder: "planke-project",
-    defaultValue: "planke-project",
+    placeholder: "rigg-project",
+    defaultValue: "rigg-project",
   });
 
   if (p.isCancel(answer)) {
@@ -106,7 +106,7 @@ async function promptProjectName(argv: Argv): Promise<string> {
     process.exit(0);
   }
 
-  return answer || "planke-project";
+  return answer || "rigg-project";
 }
 
 /** Prompts for a backend framework, or reads it from the --template flag. */
@@ -208,7 +208,7 @@ async function main(): Promise<void> {
   p.intro(
     pc.bold(
       gradient(
-        "planke - The Unified Toolchain Starter for Node.js",
+        "rigg - The Unified Toolchain Starter for Node.js",
         [
           [255, 255, 255],
           [168, 85, 247],
