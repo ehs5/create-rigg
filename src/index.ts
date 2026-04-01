@@ -8,7 +8,14 @@ import spawn from "cross-spawn";
 import mri from "mri";
 import * as p from "@clack/prompts";
 import pc from "picocolors";
-import { type Framework, FRAMEWORKS, FRAMEWORK_DEPS, FRAMEWORK_INDEX, FRAMEWORK_LABELS } from "./frameworks.js";
+import {
+  type Framework,
+  FRAMEWORKS,
+  FRAMEWORK_DEPS,
+  FRAMEWORK_INDEX,
+  FRAMEWORK_LABELS,
+} from "./frameworks.js";
+import { type PkgManager, PKG_MANAGERS } from "./pkg-managers.js";
 
 type Argv = mri.Argv<{ template?: string; pm?: string }>;
 
@@ -39,16 +46,16 @@ function gradient(
 }
 
 /** Detects the package manager used to invoke the CLI via npm_config_user_agent. */
-function detectPkgManager(): string {
+function detectPkgManager(): PkgManager {
   const ua: string = process.env.npm_config_user_agent ?? "";
-  if (ua.startsWith("pnpm")) return "pnpm";
-  if (ua.startsWith("bun")) return "bun";
-  if (ua.startsWith("yarn")) return "yarn";
+  for (const pm of PKG_MANAGERS) {
+    if (ua.startsWith(pm)) return pm;
+  }
   return "npm";
 }
 
 /** Builds the install/add command args for the given package manager. */
-function addArgs(pkgManager: string, packages: string[], dev: boolean): string[] {
+function addArgs(pkgManager: PkgManager, packages: string[], dev: boolean): string[] {
   const cmd = pkgManager === "npm" ? "install" : "add";
   const devFlag: Record<string, string> = {
     npm: "--save-dev",
@@ -155,8 +162,17 @@ function scaffoldFiles(projectName: string, framework: Framework, targetDir: str
 }
 
 /** Installs shared dev dependencies and any framework-specific packages. */
-function installDependencies(pkgManager: string, framework: Framework, targetDir: string): void {
-  p.log.step(`Installing dependencies with ${gradient(pkgManager, [[168, 85, 247], [99, 102, 241]])}...`);
+function installDependencies(
+  pkgManager: PkgManager,
+  framework: Framework,
+  targetDir: string,
+): void {
+  p.log.step(
+    `Installing dependencies with ${gradient(pkgManager, [
+      [168, 85, 247],
+      [99, 102, 241],
+    ])}...`,
+  );
   run(
     pkgManager,
     addArgs(
@@ -169,7 +185,12 @@ function installDependencies(pkgManager: string, framework: Framework, targetDir
 
   /** Install framework dependencies */
   if (framework !== "none") {
-    p.log.step(`Installing ${gradient(FRAMEWORK_LABELS[framework], [[168, 85, 247], [99, 102, 241]])}...`);
+    p.log.step(
+      `Installing ${gradient(FRAMEWORK_LABELS[framework], [
+        [168, 85, 247],
+        [99, 102, 241],
+      ])}...`,
+    );
     const frameworkDeps = FRAMEWORK_DEPS[framework];
 
     if (frameworkDeps.deps.length > 0)
@@ -181,9 +202,12 @@ function installDependencies(pkgManager: string, framework: Framework, targetDir
 }
 
 /** Prints the gradient outro with next steps. */
-function showOutro(projectName: string, framework: Framework, pkgManager: string): void {
+function showOutro(projectName: string, framework: Framework, pkgManager: PkgManager): void {
   const frameworkLabel: string = FRAMEWORK_LABELS[framework];
-  const outroStops: [number, number, number][] = [[168, 85, 247], [99, 102, 241]];
+  const outroStops: [number, number, number][] = [
+    [168, 85, 247],
+    [99, 102, 241],
+  ];
   const outroText =
     frameworkLabel !== "None"
       ? `Created ${projectName} with ${frameworkLabel}`
@@ -217,7 +241,7 @@ async function main(): Promise<void> {
 
   const projectName: string = await promptProjectName(argv);
   const targetDir: string = path.resolve(process.cwd(), projectName);
-  const pkgManager: string = argv.pm ?? detectPkgManager();
+  const pkgManager: PkgManager = (argv.pm as PkgManager | undefined) ?? detectPkgManager();
 
   await confirmOverwrite(projectName, targetDir);
 

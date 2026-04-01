@@ -1,16 +1,16 @@
 {
   "name": "create-rigg",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "The Unified Toolchain Starter for Node.js backend and non-web projects",
   "keywords": [
     "backend",
-    "node",
-    "nodejs",
     "create-rigg",
     "express",
     "fastify",
     "framework",
     "hono",
+    "node",
+    "nodejs",
     "oxfmt",
     "oxlint",
     "rigg",
@@ -42,7 +42,8 @@
     "fmt:check": "oxfmt --check",
     "check": "oxlint && oxfmt --check && tsc --noEmit",
     "dev": "tsx src/index.ts",
-    "build": "tsdown src/index.ts"
+    "build": "tsdown src/index.ts",
+    "prepublishOnly": "oxlint && oxfmt && tsc --noEmit && vitest run && pnpm build"
   },
   "dependencies": {
     "@clack/prompts": "^1.1.0",
