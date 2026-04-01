@@ -1,7 +1,7 @@
 {
   "name": "create-rigg",
   "version": "0.0.2",
-  "description": "The Unified Toolchain Starter for Node.js backend and non-web projects*",
+  "description": "The Unified Toolchain Starter for Node.js backend and non-web projects",
   "keywords": [
     "backend",
     "node",
