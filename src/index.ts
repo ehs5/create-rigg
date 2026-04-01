@@ -17,7 +17,15 @@ import {
 } from "./frameworks.js";
 import { type PkgManager, PKG_MANAGERS } from "./pkg-managers.js";
 
-type Argv = mri.Argv<{ template?: string; pm?: string }>;
+type Argv = mri.Argv<{ template?: string; pm?: string; verbose?: boolean }>;
+
+/** Resolved options coming from the CLI or user prompts. */
+type Options = {
+  projectName: string;
+  framework: Framework;
+  pkgManager: PkgManager;
+  verbose: boolean;
+};
 
 /** Creates a colored gradient text effect */
 function gradient(
@@ -67,14 +75,17 @@ function addArgs(pkgManager: PkgManager, packages: string[], dev: boolean): stri
 }
 
 /** Runs a command synchronously, exiting the process if it fails. */
-function run(cmd: string, args: string[], opts?: SpawnSyncOptions): void {
+function run(cmd: string, args: string[], opts?: SpawnSyncOptions) {
   const result = spawn.sync(cmd, args, { stdio: "ignore", ...opts });
-  if (result.status != null && result.status !== 0) process.exit(result.status);
   if (result.error) throw result.error;
+  if (result.status != null && result.status !== 0) {
+    p.cancel(`${cmd} ${args.join(" ")} failed with exit code ${result.status}`);
+    process.exit(result.status);
+  }
 }
 
 /** Recursively copies a directory, renaming _gitignore to .gitignore. */
-function copyDir(src: string, dest: string): void {
+function copyDir(src: string, dest: string) {
   fs.mkdirSync(dest, { recursive: true });
   for (const entry of fs.readdirSync(src)) {
     const srcPath = path.join(src, entry);
@@ -94,9 +105,8 @@ function isEmpty(dir: string): boolean {
   return files.length === 0 || (files.length === 1 && files[0] === ".git");
 }
 
-/** Prompts for a project name, or reads it from the first CLI argument. */
-async function promptProjectName(argv: Argv): Promise<string> {
-  const fromArg = (argv._[0] as string | undefined) ?? "";
+/** Resolves the project name from the CLI arg or prompts the user. */
+async function resolveProjectName(fromArg: string | undefined): Promise<string> {
   if (fromArg) return fromArg;
 
   const answer = await p.text({
@@ -113,10 +123,9 @@ async function promptProjectName(argv: Argv): Promise<string> {
   return answer || "rigg-project";
 }
 
-/** Prompts for a backend framework, or reads it from the --template flag. */
-async function promptFramework(argv: Argv): Promise<Framework> {
-  const templateArg = argv.template as Framework | undefined;
-  if (templateArg && FRAMEWORK_DEPS[templateArg]) return templateArg;
+/** Resolves the framework from the --template flag or prompts the user. */
+async function resolveFramework(fromArg: string | undefined): Promise<Framework> {
+  if (fromArg && FRAMEWORK_DEPS[fromArg as Framework]) return fromArg as Framework;
 
   const answer = await p.select<Framework>({
     message: "Backend framework:",
@@ -148,31 +157,31 @@ async function confirmOverwrite(projectName: string, targetDir: string): Promise
 }
 
 /** Copies the base template, sets the package name, and writes the framework starter code. */
-function scaffoldFiles(projectName: string, framework: Framework, targetDir: string): void {
+function scaffoldFiles(options: Options, targetDir: string) {
   const directory: string = path.dirname(fileURLToPath(import.meta.url));
   copyDir(path.join(directory, "..", "template"), targetDir);
 
   const pkgJsonPath: string = path.join(targetDir, "package.json");
   const pkg: Record<string, unknown> = JSON.parse(fs.readFileSync(pkgJsonPath, "utf-8"));
-  pkg.name = projectName;
+  pkg.name = options.projectName;
   fs.writeFileSync(pkgJsonPath, JSON.stringify(pkg, null, 2) + "\n");
 
   fs.mkdirSync(path.join(targetDir, "src"), { recursive: true });
-  fs.writeFileSync(path.join(targetDir, "src", "index.ts"), FRAMEWORK_INDEX[framework]);
+  fs.writeFileSync(path.join(targetDir, "src", "index.ts"), FRAMEWORK_INDEX[options.framework]);
 }
 
 /** Installs shared dev dependencies and any framework-specific packages. */
-function installDependencies(
-  pkgManager: PkgManager,
-  framework: Framework,
-  targetDir: string,
-): void {
+function installDependencies(options: Options, targetDir: string) {
+  const { pkgManager, framework, verbose } = options;
+  const stdio = verbose ? "inherit" : "ignore";
+
   p.log.step(
     `Installing dependencies with ${gradient(pkgManager, [
       [168, 85, 247],
       [99, 102, 241],
     ])}...`,
   );
+
   run(
     pkgManager,
     addArgs(
@@ -180,10 +189,9 @@ function installDependencies(
       ["@types/node", "oxfmt", "oxlint", "tsdown", "tsx", "typescript", "vitest"],
       true,
     ),
-    { cwd: targetDir },
+    { cwd: targetDir, stdio },
   );
 
-  /** Install framework dependencies */
   if (framework !== "none") {
     p.log.step(
       `Installing ${gradient(FRAMEWORK_LABELS[framework], [
@@ -191,40 +199,16 @@ function installDependencies(
         [99, 102, 241],
       ])}...`,
     );
-    const frameworkDeps = FRAMEWORK_DEPS[framework];
-
-    if (frameworkDeps.deps.length > 0)
-      run(pkgManager, addArgs(pkgManager, frameworkDeps.deps, false), { cwd: targetDir });
-
-    if (frameworkDeps.devDeps.length > 0)
-      run(pkgManager, addArgs(pkgManager, frameworkDeps.devDeps, true), { cwd: targetDir });
+    const { deps, devDeps } = FRAMEWORK_DEPS[framework];
+    if (deps.length > 0)
+      run(pkgManager, addArgs(pkgManager, deps, false), { cwd: targetDir, stdio });
+    if (devDeps.length > 0)
+      run(pkgManager, addArgs(pkgManager, devDeps, true), { cwd: targetDir, stdio });
   }
 }
 
-/** Prints the gradient outro with next steps. */
-function showOutro(projectName: string, framework: Framework, pkgManager: PkgManager): void {
-  const frameworkLabel: string = FRAMEWORK_LABELS[framework];
-  const outroStops: [number, number, number][] = [
-    [168, 85, 247],
-    [99, 102, 241],
-  ];
-  const outroText =
-    frameworkLabel !== "None"
-      ? `Created ${projectName} with ${frameworkLabel}`
-      : `Created ${projectName}`;
-  const nameStart = "Created ".length;
-  const outro = gradient(outroText, outroStops, [nameStart, nameStart + projectName.length]);
-
-  const devCmd: string = pkgManager === "npm" ? "npm run dev" : `${pkgManager} dev`;
-  p.outro(`${outro}\n\n  ${pc.dim("Now run:")}\n  cd ${projectName}\n  ${devCmd}`);
-}
-
-async function main(): Promise<void> {
-  const argv: Argv = mri(process.argv.slice(2), {
-    string: ["template", "pm"],
-    alias: { t: "template" },
-  }) as Argv;
-
+/** Prints the gradient intro. */
+function showIntro() {
   p.intro(
     pc.bold(
       gradient(
@@ -238,29 +222,75 @@ async function main(): Promise<void> {
       ),
     ),
   );
+}
 
-  const projectName: string = await promptProjectName(argv);
-  const targetDir: string = path.resolve(process.cwd(), projectName);
-  const pkgManager: PkgManager = (argv.pm as PkgManager | undefined) ?? detectPkgManager();
+/** Prints the gradient outro with next steps. */
+function showOutro(options: Options) {
+  const { projectName, framework, pkgManager } = options;
+  const frameworkLabel = FRAMEWORK_LABELS[framework];
+  const stops: [number, number, number][] = [
+    [168, 85, 247],
+    [99, 102, 241],
+  ];
+  const text =
+    frameworkLabel !== "None"
+      ? `Created ${projectName} with ${frameworkLabel}`
+      : `Created ${projectName}`;
+  const title = gradient(text, stops, ["Created ".length, "Created ".length + projectName.length]);
+  const devCmd = pkgManager === "npm" ? "npm run dev" : `${pkgManager} dev`;
+  p.outro(`${title}\n\n  ${pc.dim("Now run:")}\n  cd ${projectName}\n  ${devCmd}`);
+}
 
-  await confirmOverwrite(projectName, targetDir);
+/** Takes the CLI args and resolves all inputs into a single options object. */
+async function resolveOptions(argv: Argv): Promise<Options> {
+  const projectName = await resolveProjectName(argv._[0] as string | undefined);
+  await confirmOverwrite(projectName, path.resolve(process.cwd(), projectName));
 
-  const framework: Framework = await promptFramework(argv);
-  scaffoldFiles(projectName, framework, targetDir);
+  return {
+    projectName,
+    framework: await resolveFramework(argv.template),
+    pkgManager: (argv.pm as PkgManager) || detectPkgManager(),
+    verbose: argv.verbose ?? false,
+  };
+}
 
-  run("git", ["init", "-b", "main"], { cwd: targetDir, stdio: "ignore" });
+function initializeGit(options: Options, targetDir: string) {
   p.log.step("Initializing git repository");
+  const stdio = options.verbose ? "inherit" : "ignore";
+  run("git", ["init", "-b", "main"], { cwd: targetDir, stdio });
+}
 
-  installDependencies(pkgManager, framework, targetDir);
-
+function formatCode(options: Options, targetDir: string) {
   p.log.step("Formatting code");
+  const { pkgManager, verbose } = options;
+  const stdio = verbose ? "inherit" : "ignore";
   const execCmd = pkgManager === "bun" ? "x" : "exec";
   const sep = pkgManager === "npm" || pkgManager === "yarn" ? ["--"] : [];
-  run(pkgManager, [execCmd, "oxlint", ...sep, "--init"], { cwd: targetDir, stdio: "ignore" });
-  run(pkgManager, [execCmd, "oxfmt", ...sep, "--init"], { cwd: targetDir, stdio: "ignore" });
-  run(pkgManager, [execCmd, "oxfmt", ...sep, "."], { cwd: targetDir, stdio: "ignore" });
+  run(pkgManager, [execCmd, "oxlint", ...sep, "--init"], { cwd: targetDir, stdio });
+  run(pkgManager, [execCmd, "oxfmt", ...sep, "--init"], { cwd: targetDir, stdio });
+  run(pkgManager, [execCmd, "oxfmt", ...sep, "."], { cwd: targetDir, stdio });
+}
 
-  showOutro(projectName, framework, pkgManager);
+async function main(): Promise<void> {
+  // Parse CLI arguments
+  const argv: Argv = mri(process.argv.slice(2), {
+    string: ["template", "pm"],
+    boolean: ["verbose"],
+    alias: { t: "template", v: "verbose" },
+  });
+
+  showIntro();
+
+  // Get options either from CLI or user prompts
+  const options: Options = await resolveOptions(argv);
+  const targetDir: string = path.resolve(process.cwd(), options.projectName);
+
+  scaffoldFiles(options, targetDir);
+  initializeGit(options, targetDir);
+  installDependencies(options, targetDir);
+  formatCode(options, targetDir);
+
+  showOutro(options);
 }
 
 main().catch((err: unknown) => {
