@@ -25,8 +25,8 @@ A project created with rigg gets most of the same tools as the Vite+ toolchain.
 | [Vitest](https://vitest.dev)                       | Testing            |
 | [Oxlint](https://oxc.rs/docs/guide/usage/linter)   | Linting            |
 | [Oxfmt](https://oxc.rs/docs/guide/usage/formatter) | Formatting         |
-| [tsx](https://tsx.is)                              | Dev-mode execution |
 | [tsdown](https://tsdown.dev)                       | Build              |
+| [tsx](https://tsx.is)                              | Dev-mode execution |
 
 ### Backend framework
 
