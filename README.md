@@ -28,16 +28,14 @@ A project created with rigg gets most of the same tools from the Vite+ toolchain
 | [tsx](https://tsx.is)                              | Dev-mode execution |
 | [tsdown](https://tsdown.dev)                       | Build              |
 
-The project is also set up with npm init and git init, so everything is ready to go. 
-
 ### Backend framework
 
 You can also choose one of the following backend frameworks:
 
-- **Hono** — lightweight, modern API framework
-- **Fastify** — fast and low overhead
-- **Express** — familiar and widely supported
-- **None** — where you don't need a API framework, or you want to pick your own.
+- **Hono** - lightweight, modern API framework
+- **Fastify** - fast and low overhead
+- **Express** - familiar and widely supported
+- **None** - where you don't need a backend framework, or you want to pick your own.
 
 ## Scripts
 
