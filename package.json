@@ -1,6 +1,6 @@
 {
   "name": "create-rigg",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "description": "Create Node.js TypeScript projects with a Unified Toolchain",
   "keywords": [
     "backend",
