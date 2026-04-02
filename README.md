@@ -5,9 +5,9 @@
 <a href="https://www.npmjs.com/package/create-rigg"><img src="https://img.shields.io/npm/v/create-rigg.svg" alt="Version"></a>
 </p>
 
-**The Unified Toolchain Starter for Node.js**
+**Create Node.js projects with a Unified Toolchain**
 
-Creates a new Node.js TypeScript project using mostly the same toolchain as [Vite+](https://github.com/voidzero-dev/vite-plus), but for backend and non-web projects.
+rigg sets up a Node.js TypeScript project with the same opinionated toolchain as Vite+, just without the web parts. Use it for backend projects, CLIs, libraries, scripts. Whatever you're building.
 
 ## Create a new project with rigg
 
