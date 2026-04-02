@@ -7,7 +7,7 @@
 
 **Create Node.js projects with a Unified Toolchain**
 
-rigg sets up a Node.js TypeScript project with the same opinionated toolchain as Vite+, just without the web parts. Use it for backend projects, CLIs, libraries, scripts. Whatever you're building.
+rigg sets up a Node.js TypeScript project with the same opinionated toolchain as [Vite+](https://github.com/voidzero-dev/vite-plus), just without the web parts. Use it for backend projects, CLIs, libraries, scripts. Whatever you're building.
 
 ## Create a new project with rigg
 
@@ -18,7 +18,7 @@ npm create rigg@latest
 
 ## What you get
 
-The project follows most of the same toolchain as Vite+.
+A project created with rigg gets most of the same tools from the Vite+ toolchain.
 
 | Tool                                               | Role               |
 | -------------------------------------------------- | ------------------ |
@@ -27,6 +27,8 @@ The project follows most of the same toolchain as Vite+.
 | [Oxfmt](https://oxc.rs/docs/guide/usage/formatter) | Formatting         |
 | [tsx](https://tsx.is)                              | Dev-mode execution |
 | [tsdown](https://tsdown.dev)                       | Build              |
+
+The project is also set up with npm init and git init, so everything is ready to go. 
 
 ### Backend framework
 
