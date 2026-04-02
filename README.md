@@ -18,7 +18,7 @@ npm create rigg@latest
 
 ## What you get
 
-A project created with rigg gets most of the same tools from the Vite+ toolchain.
+A project created with rigg gets most of the same tools as the Vite+ toolchain.
 
 | Tool                                               | Role               |
 | -------------------------------------------------- | ------------------ |
