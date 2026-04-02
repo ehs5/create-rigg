@@ -26,6 +26,10 @@
   ],
   "license": "MIT",
   "author": "Espen Steen",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ehs5/rigg.git"
+  },
   "bin": {
     "create-rigg": "./dist/index.mjs"
   },
