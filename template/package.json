@@ -1,6 +1,14 @@
 {
-  "name": "create-rigg",
+  "name": "rigg-project",
   "version": "0.0.0",
+  "description": "Create Node.js TypeScript projects with a Unified Toolchain",
+  "keywords": [],
+  "license": "",
+  "author": "",
+  "repository": {
+    "type": "",
+    "url": ""
+  },
   "type": "module",
   "scripts": {
     "dev": "tsx src/index.ts",
