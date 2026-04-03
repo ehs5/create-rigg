@@ -241,16 +241,22 @@ function showOutro(options: Options) {
   p.outro(`${title}\n\n  ${pc.dim("Now run:")}\n  cd ${projectName}\n  ${devCmd}`);
 }
 
-/** Takes the CLI args and resolves all inputs into a single options object. */
+/**
+ * Resolves options either from CLI args or user prompts.
+ */
 async function resolveOptions(argv: Argv): Promise<Options> {
-  const projectName = await resolveProjectName(argv._[0] as string | undefined);
+  const projectName: string = await resolveProjectName(argv._[0] as string | undefined);
   await confirmOverwrite(projectName, path.resolve(process.cwd(), projectName));
+
+  const framework: Framework = await resolveFramework(argv.framework);
+  const pkgManager: PkgManager = (argv.pm as PkgManager) || detectPkgManager();
+  const verbose: boolean = argv.verbose ?? false;
 
   return {
     projectName,
-    framework: await resolveFramework(argv.framework),
-    pkgManager: (argv.pm as PkgManager) || detectPkgManager(),
-    verbose: argv.verbose ?? false,
+    framework,
+    pkgManager,
+    verbose,
   };
 }
 
