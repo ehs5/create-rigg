@@ -229,6 +229,8 @@ async function installDependencies(options: Options, targetDir: string) {
 
 /** Prints the gradient intro. */
 function showIntro() {
+  console.log("");
+
   p.intro(
     pc.bold(
       gradient(
