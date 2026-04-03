@@ -2,12 +2,13 @@
 
 <p>
 <a href="https://npmx.dev/package/create-rigg"><img src="https://npmx.dev/api/registry/badge/version/create-rigg" alt="Version"></a>
-<a href="https://www.npmjs.com/package/create-rigg"><img src="https://img.shields.io/npm/v/create-rigg.svg" alt="Version"></a>
 </p>
 
 **Create Node.js projects with a modern toolchain**
 
 I really like what [VoidZero](https://voidzero.dev) and [Vite+](https://github.com/voidzero-dev/vite-plus) are doing for web development. **rigg** brings the same toolchain to every Node.js project outside the browser. Use it for backends, CLIs, libraries, scripts, whatever you're building.
+
+![Screenshot of the rigg CLI](./media/screenshot-cli.png)
 
 ## Create a new project with rigg
 
