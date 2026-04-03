@@ -19,6 +19,10 @@ import { type PkgManager, PKG_MANAGERS } from "./pkg-managers.js";
 
 type Argv = mri.Argv<{ framework?: string; pm?: string; verbose?: boolean }>;
 
+const PRIMARY: [number, number, number] = [251, 146, 60];
+const SECONDARY: [number, number, number] = [236, 72, 153];
+const THEME: [number, number, number][] = [PRIMARY, SECONDARY];
+
 /** Resolved options coming from the CLI or user prompts. */
 type Options = {
   projectName: string;
@@ -192,13 +196,8 @@ async function scaffoldFiles(options: Options, targetDir: string) {
 async function installDependencies(options: Options, targetDir: string) {
   const { pkgManager, framework, verbose } = options;
   const stdio = verbose ? "inherit" : "ignore";
-  const gradientStops: [number, number, number][] = [
-    [168, 85, 247],
-    [99, 102, 241],
-  ];
-
   const depSpin = p.spinner();
-  depSpin.start(`Installing dependencies with ${gradient(pkgManager, gradientStops)}...`);
+  depSpin.start(`Installing dependencies with ${gradient(pkgManager, THEME)}...`);
 
   await run(
     pkgManager,
@@ -210,13 +209,13 @@ async function installDependencies(options: Options, targetDir: string) {
     { cwd: targetDir, stdio },
   );
 
-  depSpin.stop(`Dependencies installed with ${gradient(pkgManager, gradientStops)}`);
+  depSpin.stop(`Dependencies installed with ${gradient(pkgManager, THEME)}`);
 
   if (framework !== "none") {
     const frameworkName: string = FRAMEWORK_LABELS[framework];
 
     const frameworkSpin = p.spinner();
-    frameworkSpin.start(`Installing ${gradient(frameworkName, gradientStops)}...`);
+    frameworkSpin.start(`Installing ${gradient(frameworkName, THEME)}...`);
 
     const { deps, devDeps } = FRAMEWORK_DEPS[framework];
     if (deps.length > 0)
@@ -224,7 +223,7 @@ async function installDependencies(options: Options, targetDir: string) {
     if (devDeps.length > 0)
       await run(pkgManager, addArgs(pkgManager, devDeps, true), { cwd: targetDir, stdio });
 
-    frameworkSpin.stop(`${gradient(frameworkName, gradientStops)} installed`);
+    frameworkSpin.stop(`${gradient(frameworkName, THEME)} installed`);
   }
 }
 
@@ -234,11 +233,7 @@ function showIntro() {
     pc.bold(
       gradient(
         "rigg - The Unified Toolchain Starter for Node.js",
-        [
-          [255, 255, 255],
-          [168, 85, 247],
-          [99, 102, 241],
-        ],
+        [[255, 255, 255], ...THEME],
         [0, 6],
       ),
     ),
@@ -249,15 +244,11 @@ function showIntro() {
 function showOutro(options: Options) {
   const { projectName, framework, pkgManager } = options;
   const frameworkLabel = FRAMEWORK_LABELS[framework];
-  const stops: [number, number, number][] = [
-    [168, 85, 247],
-    [99, 102, 241],
-  ];
   const text =
     frameworkLabel !== "None"
       ? `Created ${projectName} with ${frameworkLabel}`
       : `Created ${projectName}`;
-  const title = gradient(text, stops, ["Created ".length, "Created ".length + projectName.length]);
+  const title = gradient(text, THEME, ["Created ".length, "Created ".length + projectName.length]);
   const devCmd = pkgManager === "npm" ? "npm run dev" : `${pkgManager} dev`;
   p.outro(`${title}\n\n  ${pc.dim("Now run:")}\n  cd ${projectName}\n  ${devCmd}`);
 }
