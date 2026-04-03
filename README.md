@@ -12,8 +12,17 @@ I really like what [VoidZero](https://voidzero.dev) and [Vite+](https://github.c
 ## Create a new project with rigg
 
 ```bash
+# pnpm
 pnpm create rigg@latest
+
+# npm
 npm create rigg@latest
+
+# bun
+bun create rigg@latest
+
+# yarn
+yarn create rigg@latest
 ```
 
 ## What you get
