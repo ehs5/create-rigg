@@ -3,7 +3,7 @@ export type FrameworkDependencies = { deps: string[]; devDeps: string[] };
 
 export const FRAMEWORKS: { value: Framework; label: string; hint?: string }[] = [
   { value: "none", label: "None" },
-  { value: "hono", label: "Hono", hint: "recommended" },
+  { value: "hono", label: "Hono", hint: "recommended framework" },
   { value: "fastify", label: "Fastify" },
   { value: "express", label: "Express" },
 ];
@@ -22,6 +22,7 @@ export const FRAMEWORK_DEPS: Record<Framework, FrameworkDependencies> = {
   express: { deps: ["express"], devDeps: ["@types/express"] },
 };
 
+/** Starter code (index.ts) for each framework. */
 export const FRAMEWORK_INDEX: Record<Framework, string> = {
   none: `console.log('Hello from rigg!')\n`,
   hono: `import { Hono } from 'hono'
@@ -37,22 +38,36 @@ serve(app, (info) => {
 `,
   fastify: `import Fastify from 'fastify'
 
-const fastify = Fastify({ logger: true })
+const fastify = Fastify({
+  logger: true,
+})
 
-fastify.get('/', async () => ({ hello: 'world' }))
+fastify.get('/', async (request, reply) => {
+  return { hello: 'world' }
+})
 
-fastify.listen({ port: 3000 })
+const start = async () => {
+  try {
+    await fastify.listen({ port: 3000 })
+  } catch (err) {
+    fastify.log.error(err)
+    process.exit(1)
+  }
+}
+
+start()
 `,
   express: `import express from 'express'
 
 const app = express()
+const port = 3000
 
 app.get('/', (req, res) => {
   res.send('Hello World')
 })
 
-app.listen(3000, () => {
-  console.log('Server running on http://localhost:3000')
+app.listen(port, () => {
+  console.log(\`Server running on http://localhost:\${port}\`)
 })
 `,
 };

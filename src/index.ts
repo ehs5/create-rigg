@@ -3,7 +3,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import type { SpawnSyncOptions } from "node:child_process";
+import type { SpawnOptions } from "node:child_process";
 import spawn from "cross-spawn";
 import mri from "mri";
 import * as p from "@clack/prompts";
@@ -74,14 +74,19 @@ function addArgs(pkgManager: PkgManager, packages: string[], dev: boolean): stri
   return dev ? [cmd, devFlag[pkgManager] ?? "--save-dev", ...packages] : [cmd, ...packages];
 }
 
-/** Runs a command synchronously, exiting the process if it fails. */
-function run(cmd: string, args: string[], opts?: SpawnSyncOptions) {
-  const result = spawn.sync(cmd, args, { stdio: "ignore", ...opts });
-  if (result.error) throw result.error;
-  if (result.status != null && result.status !== 0) {
-    p.cancel(`${cmd} ${args.join(" ")} failed with exit code ${result.status}`);
-    process.exit(result.status);
-  }
+/** Runs a command asynchronously, exiting the process if it fails. */
+function run(cmd: string, args: string[], opts?: SpawnOptions): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const result = spawn(cmd, args, { stdio: "ignore", ...opts });
+    result.on("error", reject);
+    result.on("close", (code) => {
+      if (code !== 0) {
+        p.cancel(`${cmd} ${args.join(" ")} failed with exit code ${code}`);
+        process.exit(code ?? 1);
+      }
+      resolve();
+    });
+  });
 }
 
 /** Recursively copies a directory, renaming _gitignore to .gitignore. */
@@ -149,40 +154,53 @@ async function confirmOverwrite(projectName: string, targetDir: string): Promise
     message: `${pc.white(projectName)} is not empty. Remove existing files and continue?`,
     initialValue: false,
   });
+
   if (p.isCancel(overwrite) || !overwrite) {
     p.cancel("Cancelled");
     process.exit(0);
   }
-  fs.rmSync(targetDir, { recursive: true, force: true });
+
+  const spin = p.spinner();
+  spin.start("Removing existing files...");
+  await fs.promises.rm(targetDir, { recursive: true, force: true });
+  spin.stop("Removed existing files");
 }
 
 /** Copies the base template, sets the package name, and writes the framework starter code. */
-function scaffoldFiles(options: Options, targetDir: string) {
+async function scaffoldFiles(options: Options, targetDir: string) {
+  const spin = p.spinner();
+  spin.start("Generating project...");
+
+  /** Copy the base template to the target directory. */
   const directory: string = path.dirname(fileURLToPath(import.meta.url));
   copyDir(path.join(directory, "..", "template"), targetDir);
 
+  /** Set the package name in the package.json file. */
   const pkgJsonPath: string = path.join(targetDir, "package.json");
   const pkg: Record<string, unknown> = JSON.parse(fs.readFileSync(pkgJsonPath, "utf-8"));
   pkg.name = options.projectName;
   fs.writeFileSync(pkgJsonPath, JSON.stringify(pkg, null, 2) + "\n");
 
+  /** Create the src directory and write the framework starter code. */
   fs.mkdirSync(path.join(targetDir, "src"), { recursive: true });
   fs.writeFileSync(path.join(targetDir, "src", "index.ts"), FRAMEWORK_INDEX[options.framework]);
+
+  spin.stop("Project generated");
 }
 
 /** Installs shared dev dependencies and any framework-specific packages. */
-function installDependencies(options: Options, targetDir: string) {
+async function installDependencies(options: Options, targetDir: string) {
   const { pkgManager, framework, verbose } = options;
   const stdio = verbose ? "inherit" : "ignore";
+  const gradientStops: [number, number, number][] = [
+    [168, 85, 247],
+    [99, 102, 241],
+  ];
 
-  p.log.step(
-    `Installing dependencies with ${gradient(pkgManager, [
-      [168, 85, 247],
-      [99, 102, 241],
-    ])}...`,
-  );
+  const depSpin = p.spinner();
+  depSpin.start(`Installing dependencies with ${gradient(pkgManager, gradientStops)}...`);
 
-  run(
+  await run(
     pkgManager,
     addArgs(
       pkgManager,
@@ -192,18 +210,21 @@ function installDependencies(options: Options, targetDir: string) {
     { cwd: targetDir, stdio },
   );
 
+  depSpin.stop(`Dependencies installed with ${gradient(pkgManager, gradientStops)}`);
+
   if (framework !== "none") {
-    p.log.step(
-      `Installing ${gradient(FRAMEWORK_LABELS[framework], [
-        [168, 85, 247],
-        [99, 102, 241],
-      ])}...`,
-    );
+    const frameworkName: string = FRAMEWORK_LABELS[framework];
+
+    const frameworkSpin = p.spinner();
+    frameworkSpin.start(`Installing ${gradient(frameworkName, gradientStops)}...`);
+
     const { deps, devDeps } = FRAMEWORK_DEPS[framework];
     if (deps.length > 0)
-      run(pkgManager, addArgs(pkgManager, deps, false), { cwd: targetDir, stdio });
+      await run(pkgManager, addArgs(pkgManager, deps, false), { cwd: targetDir, stdio });
     if (devDeps.length > 0)
-      run(pkgManager, addArgs(pkgManager, devDeps, true), { cwd: targetDir, stdio });
+      await run(pkgManager, addArgs(pkgManager, devDeps, true), { cwd: targetDir, stdio });
+
+    frameworkSpin.stop(`${gradient(frameworkName, gradientStops)} installed`);
   }
 }
 
@@ -260,21 +281,35 @@ async function resolveOptions(argv: Argv): Promise<Options> {
   };
 }
 
-function initializeGit(options: Options, targetDir: string) {
-  p.log.step("Initializing git repository");
+async function initializeGit(options: Options, targetDir: string) {
+  const git = spawn.sync("git", ["--version"], { stdio: "ignore" });
+  if (git.error || git.status !== 0) {
+    p.log.info("Git not found. Skipping repository initialization.");
+    return;
+  }
+
+  const spin = p.spinner();
+  spin.start("Initializing git repository...");
   const stdio = options.verbose ? "inherit" : "ignore";
-  run("git", ["init", "-b", "main"], { cwd: targetDir, stdio });
+  await run("git", ["init", "-b", "main"], { cwd: targetDir, stdio });
+  spin.stop("Git repository initialized");
 }
 
-function formatCode(options: Options, targetDir: string) {
-  p.log.step("Formatting code");
+/**
+ * Creates oxlint+oxfmt configuration files and formats the code.
+ */
+async function formatCode(options: Options, targetDir: string) {
   const { pkgManager, verbose } = options;
   const stdio = verbose ? "inherit" : "ignore";
   const execCmd = pkgManager === "bun" ? "x" : "exec";
   const sep = pkgManager === "npm" || pkgManager === "yarn" ? ["--"] : [];
-  run(pkgManager, [execCmd, "oxlint", ...sep, "--init"], { cwd: targetDir, stdio });
-  run(pkgManager, [execCmd, "oxfmt", ...sep, "--init"], { cwd: targetDir, stdio });
-  run(pkgManager, [execCmd, "oxfmt", ...sep, "."], { cwd: targetDir, stdio });
+
+  const spin = p.spinner();
+  spin.start("Formatting code...");
+  await run(pkgManager, [execCmd, "oxlint", ...sep, "--init"], { cwd: targetDir, stdio });
+  await run(pkgManager, [execCmd, "oxfmt", ...sep, "--init"], { cwd: targetDir, stdio });
+  await run(pkgManager, [execCmd, "oxfmt", ...sep, "."], { cwd: targetDir, stdio });
+  spin.stop("Code formatted");
 }
 
 async function main(): Promise<void> {
@@ -291,10 +326,10 @@ async function main(): Promise<void> {
   const options: Options = await resolveOptions(argv);
   const targetDir: string = path.resolve(process.cwd(), options.projectName);
 
-  scaffoldFiles(options, targetDir);
-  initializeGit(options, targetDir);
-  installDependencies(options, targetDir);
-  formatCode(options, targetDir);
+  await scaffoldFiles(options, targetDir);
+  await initializeGit(options, targetDir);
+  await installDependencies(options, targetDir);
+  await formatCode(options, targetDir);
 
   showOutro(options);
 }
