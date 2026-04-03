@@ -1,26 +1,26 @@
-export type Framework = "none" | "hono" | "fastify" | "express";
-export type FrameworkDependencies = { deps: string[]; devDeps: string[] };
+export type Framework = "none" | "hono" | "fastify" | "express"
+export type FrameworkDependencies = { deps: string[]; devDeps: string[] }
 
 export const FRAMEWORKS: { value: Framework; label: string; hint?: string }[] = [
   { value: "none", label: "None" },
   { value: "hono", label: "Hono", hint: "recommended framework" },
   { value: "fastify", label: "Fastify" },
   { value: "express", label: "Express" },
-];
+]
 
 export const FRAMEWORK_LABELS: Record<Framework, string> = {
   none: "None",
   hono: "Hono",
   fastify: "Fastify",
   express: "Express",
-};
+}
 
 export const FRAMEWORK_DEPS: Record<Framework, FrameworkDependencies> = {
   none: { deps: [], devDeps: [] },
   hono: { deps: ["hono", "@hono/node-server"], devDeps: [] },
   fastify: { deps: ["fastify"], devDeps: [] },
   express: { deps: ["express"], devDeps: ["@types/express"] },
-};
+}
 
 /** Starter code (index.ts) for each framework. */
 export const FRAMEWORK_INDEX: Record<Framework, string> = {
@@ -70,4 +70,4 @@ app.listen(port, () => {
   console.log(\`Server running on http://localhost:\${port}\`)
 })
 `,
-};
+}
