@@ -1,7 +1,7 @@
 {
   "name": "create-rigg",
   "version": "0.0.8",
-  "description": "Create Node.js TypeScript projects with a Unified Toolchain",
+  "description": "Create Node.js TypeScript projects using the Vite+ Toolchain - for everything outside the browser.",
   "keywords": [
     "backend",
     "create-rigg",

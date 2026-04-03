@@ -5,9 +5,9 @@
 <a href="https://www.npmjs.com/package/create-rigg"><img src="https://img.shields.io/npm/v/create-rigg.svg" alt="Version"></a>
 </p>
 
-**Create Node.js projects with a Unified Toolchain**
+**Create Node.js projects with a modern toolchain**
 
-rigg sets up a new Node.js TypeScript project with the same opinionated toolchain as [Vite+](https://github.com/voidzero-dev/vite-plus), just without the web parts. Use it for backend projects, CLIs, libraries, scripts. Whatever you're building.
+I really like what [VoidZero](https://voidzero.dev) and [Vite+](https://github.com/voidzero-dev/vite-plus) are doing for web development. **rigg** brings the same toolchain to every Node.js project outside the browser. Use it for backends, CLIs, libraries, scripts, whatever you're building.
 
 ## Create a new project with rigg
 
@@ -18,7 +18,7 @@ npm create rigg@latest
 
 ## What you get
 
-A project created with rigg gets most of the same tools as the Vite+ toolchain.
+A project created with rigg gets most of the same tools as in the Vite+ toolchain.
 
 | Tool                                               | Role               |
 | -------------------------------------------------- | ------------------ |

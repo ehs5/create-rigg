@@ -232,7 +232,7 @@ function showIntro() {
   p.intro(
     pc.bold(
       gradient(
-        "rigg - The Unified Toolchain Starter for Node.js",
+        "rigg - Node.js projects with a modern toolchain",
         [[255, 255, 255], ...THEME],
         [0, 6],
       ),
