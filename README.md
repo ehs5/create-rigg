@@ -54,6 +54,7 @@ Every generated project includes:
 ```bash
 pnpm dev        # Run with tsx (no build step)
 pnpm build      # Build with tsdown
+pnpm start      # Run compiled output
 pnpm test       # Run Vitest
 pnpm check      # Lint + format check + type check
 pnpm fmt        # Format

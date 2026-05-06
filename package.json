@@ -47,6 +47,7 @@
     "check": "oxlint && oxfmt --check && tsc --noEmit",
     "dev": "tsx src/index.ts",
     "build": "tsdown src/index.ts",
+    "start": "node dist/index.mjs",
     "prepublishOnly": "git diff --exit-code && git diff --cached --exit-code && oxlint && oxfmt && tsc --noEmit && vitest run && pnpm build"
   },
   "dependencies": {

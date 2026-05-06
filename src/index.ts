@@ -185,6 +185,11 @@ async function scaffoldFiles(options: Options, targetDir: string) {
   pkg.name = options.projectName
   fs.writeFileSync(pkgJsonPath, JSON.stringify(pkg, null, 2) + "\n")
 
+  /** Replace the placeholder project name in README.md. */
+  const readmePath: string = path.join(targetDir, "README.md")
+  const readme: string = fs.readFileSync(readmePath, "utf-8")
+  fs.writeFileSync(readmePath, readme.replaceAll("{{project_name}}", options.projectName))
+
   /** Create the src directory and write the framework starter code. */
   fs.mkdirSync(path.join(targetDir, "src"), { recursive: true })
   fs.writeFileSync(path.join(targetDir, "src", "index.ts"), FRAMEWORK_INDEX[options.framework])

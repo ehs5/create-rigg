@@ -1,7 +1,7 @@
 {
   "name": "rigg-project",
   "version": "0.0.0",
-  "description": "Create Node.js TypeScript projects with a Unified Toolchain",
+  "description": "",
   "keywords": [],
   "license": "",
   "author": "",
@@ -13,6 +13,7 @@
   "scripts": {
     "dev": "tsx src/index.ts",
     "build": "tsdown src/index.ts",
+    "start": "node dist/index.mjs",
     "test": "vitest",
     "lint": "oxlint",
     "lint:fix": "oxlint --fix",
