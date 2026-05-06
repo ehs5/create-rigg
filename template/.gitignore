@@ -1,3 +1,22 @@
+# macOS settings file
+.DS_Store
+
+# Contains all your dependencies
 node_modules
-dist
+
+# Replace as required with your build location
+/build
+
+# Deal with environment files
 .env
+.env.*
+
+# We'll allow an example .env file which can be copied + schemas
+!.env.example
+!.env.schema
+
+# Coverage directory used by testing tools
+coverage
+
+# Visual Studio Code configuration
+.vscode/
