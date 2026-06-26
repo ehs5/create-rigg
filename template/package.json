@@ -11,7 +11,7 @@
   },
   "type": "module",
   "scripts": {
-    "dev": "tsx src/index.ts",
+    "dev": "tsx watch src/index.ts",
     "build": "tsdown src/index.ts",
     "start": "node dist/index.mjs",
     "test": "vitest",
