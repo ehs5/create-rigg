@@ -4,8 +4,7 @@
 # Contains all your dependencies
 node_modules
 
-# Replace as required with your build location
-/build
+/dist
 
 # Deal with environment files
 .env

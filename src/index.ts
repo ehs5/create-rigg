@@ -93,12 +93,14 @@ function run(cmd: string, args: string[], opts?: SpawnOptions): Promise<void> {
   })
 }
 
-/** Recursively copies a directory, renaming _gitignore to .gitignore. */
+/** Recursively copies a directory, renaming _gitignore → .gitignore (npm strips dotfiles during publish). */
 function copyDir(src: string, dest: string) {
   fs.mkdirSync(dest, { recursive: true })
   for (const entry of fs.readdirSync(src)) {
-    const srcPath = path.join(src, entry)
-    const destPath = path.join(dest, entry === "_gitignore" ? ".gitignore" : entry)
+    const srcPath: string = path.join(src, entry)
+    const destName: string = entry === "_gitignore" ? ".gitignore" : entry
+    const destPath: string = path.join(dest, destName)
+
     if (fs.statSync(srcPath).isDirectory()) {
       copyDir(srcPath, destPath)
     } else {
@@ -183,7 +185,16 @@ async function scaffoldFiles(options: Options, targetDir: string) {
   const pkgJsonPath: string = path.join(targetDir, "package.json")
   const pkg: Record<string, unknown> = JSON.parse(fs.readFileSync(pkgJsonPath, "utf-8"))
   pkg.name = options.projectName
+  if (options.pkgManager === "npm") pkg.allowScripts = { esbuild: true } // npm 12+
   fs.writeFileSync(pkgJsonPath, JSON.stringify(pkg, null, 2) + "\n")
+
+  // pnpm 10+ and npm 12+ block post-install scripts by default; esbuild needs one to fetch its native binary
+  if (options.pkgManager === "pnpm") {
+    fs.writeFileSync(
+      path.join(targetDir, "pnpm-workspace.yaml"),
+      "allowBuilds:\n  esbuild: true\n",
+    )
+  }
 
   /** Replace the placeholder project name in README.md. */
   const readmePath: string = path.join(targetDir, "README.md")
