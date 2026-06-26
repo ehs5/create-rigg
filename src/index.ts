@@ -190,10 +190,7 @@ async function scaffoldFiles(options: Options, targetDir: string) {
 
   // pnpm 10+ and npm 12+ block post-install scripts by default; esbuild needs one to fetch its native binary
   if (options.pkgManager === "pnpm") {
-    fs.writeFileSync(
-      path.join(targetDir, "pnpm-workspace.yaml"),
-      "allowBuilds:\n  esbuild: true\n",
-    )
+    fs.writeFileSync(path.join(targetDir, "pnpm-workspace.yaml"), "allowBuilds:\n  esbuild: true\n")
   }
 
   /** Replace the placeholder project name in README.md. */
